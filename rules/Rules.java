@@ -78,19 +78,105 @@ public class Rules {
 	static ArrayList<String> tag(ArrayList<String> rawWords){
 		//String lastTag = new String();
 		ArrayList<String> outSentence = new ArrayList<String>();
-		String[][] chart = new String[rawWords.size()][rawWords.size()];
+		//String[][] chart = new String[rawWords.size()][rawWords.size()];
 		for(int i = 0; i<rawWords.size(); i++){
 			String[] entry = rawWords.get(i).split("\\s+");
 			String word = entry[0];
 			String pos = entry[1];
-			if(pos.equals("NN")||pos.equals("NNS")||pos.equals("NNP")||pos.equals("NNPS")||pos.equals("CD")||pos.equals("PRP")){
+			if((pos.equals("NNP")||word.equals("tomorrow"))&&rawWords.get(i-1).split("\\s+")[0].equals("due")){
+				int beginning = i;
+				int ending = i;
+				int j = i+1;
+				boolean endingFound = false;
+				while(!endingFound){
+					String next=rawWords.get(j).split("\\s")[1];
+					if(next.equals("NN")||next.equals("NNP")||next.equals("NNS")||next.equals("NNPS")||next.equals("CD")){
+						ending++;
+						j++;
+					}
+					else
+						endingFound = true;
+				}
+				while(beginning<outSentence.size()){
+					outSentence.remove(outSentence.size()-1);
+				}
+				String nounGroupLine = rawWords.get(beginning).split("\\s+")[0]+"\tB-NP";
+				outSentence.add(nounGroupLine);
+				for(int index = beginning+1; index<=ending; index++){
+					nounGroupLine = rawWords.get(index).split("\\s+")[0]+"\tI-NP";
+					outSentence.add(nounGroupLine);
+				}
+				i=ending;
+			}
+			/*else if(pos.equals("CD")&&rawWords.get(i-1).split("\\s+")[0].equals("$")&&rawWords.get(i-2).split("\\s+")[1].equals("IN")){
+				int beginning=i;
+				int ending = i;
+				int j=i+1;
+				boolean endingFound = false;
+				while(!endingFound){
+					String next=rawWords.get(j).split("\\s")[1];
+					if(next.equals("CD")){
+						ending++;
+						j++;
+					}
+					else
+						endingFound = true;
+				}
+				boolean beginningFound = false;
+				j = i-1;
+				while(!beginningFound){
+					String prior=rawWords.get(j).split("\\s")[1];
+					String priorWord = rawWords.get(j).split("\\s")[0];
+					if(prior.equals("$")){
+						beginning--;
+						j--;
+					}
+					else if (rawWords.get(j).split("\\s+")[0].equals("as")&&rawWords.get(j-1).split("\\s+")[0].equals("much")&&rawWords.get(j-2).split("\\s+")[0].equals("as")){
+						beginning -=3;
+						beginningFound = true;
+						j -=3;
+					}
+					else if (prior.equals("IN")){
+						beginning --;
+						j--;
+						beginningFound = true;
+					}
+						
+					else
+						beginningFound = true;
+				}
+				while(beginning<outSentence.size()){
+					outSentence.remove(outSentence.size()-1);
+				}
+				String nounGroupLine = rawWords.get(beginning).split("\\s+")[0]+"\tB-NP";
+				outSentence.add(nounGroupLine);
+				for(int index = beginning+1; index<=ending; index++){
+					nounGroupLine = rawWords.get(index).split("\\s+")[0]+"\tI-NP";
+					outSentence.add(nounGroupLine);
+				}
+				i=ending;
+			}*/
+			else if(pos.equals("PRP")||pos.equals("WP")||word.equals("those")||pos.equals("WDT")){
+				int beginning = i;
+				int ending = i;
+				String nounGroupLine = rawWords.get(beginning).split("\\s+")[0]+"\tB-NP";
+				outSentence.add(nounGroupLine);
+			}
+			/*else if (word.equals("same")&&rawWords.get(i-1).split("\\s")[0].equals("the")){
+				outSentence.remove(outSentence.size()-1);
+				String nounGroupLine = "the\tB-NP";
+				outSentence.add(nounGroupLine);
+				nounGroupLine = "same\tI-NP";
+				outSentence.add(nounGroupLine);
+			}*/
+			else if(pos.equals("NN")||pos.equals("NNS")||pos.equals("NNP")||pos.equals("NNPS")||pos.equals("CD")/*||pos.equals("PRP")*/||pos.equals("EX")){
 				int beginning = i;
 				int ending = i;
 				boolean endFound = false;
 				int j = i+1;
 				while(!endFound){
 					String next=rawWords.get(j).split("\\s")[1];
-					if(next.equals("NN")||next.equals("NNS")||next.equals("NNP")||next.equals("NNPS")||next.equals("CD")){
+					if(next.equals("NN")||next.equals("NNS")||next.equals("NNP")||next.equals("NNPS")||next.equals("CD")||(next.equals("CC")&&rawWords.get(j-1).split("\\s")[1].equals("CD")&&rawWords.get(j+1).split("\\s")[1].equals("CD"))){
 						ending++;
 						j++;
 					}
@@ -100,8 +186,9 @@ public class Rules {
 				boolean beginningFound = false;
 				j = i-1;
 				while(!beginningFound){
-					String prior = rawWords.get(j).split("\\s")[1];
-					if(prior.equals("JJ")||prior.equals("JJR")||prior.equals("JJS")||prior.equals("PRP$")||prior.equals("RBS")||prior.equals("$")){
+					String[] pArray = rawWords.get(j).split("\\s+");
+					String prior = pArray[1];
+					if(prior.equals("JJ")||prior.equals("JJR")||prior.equals("JJS")||prior.equals("PRP$")||prior.equals("RBS")||prior.equals("$")||prior.equals("RB")||(prior.equals("VBG")&&rawWords.get(j-1).split("\\s+")[1].equals("JJR"))||(pArray[0].equals("more")&&rawWords.get(j+1).split("\\s+")[1].equals("JJ"))){
 						beginning--;
 						j--;
 					}
