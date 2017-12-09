@@ -62,7 +62,7 @@ public class Rules {
 		path2+="ruleOutput.chunk";
 		
 		try {//writes to the output file
-			File chunk = new File(path2);
+			//File chunk = new File(path2);
 			Files.write(Paths.get(path2), out, StandardCharsets.UTF_8);
 		} catch (IOException e) {
 			
@@ -83,6 +83,7 @@ public class Rules {
 			String[] entry = rawWords.get(i).split("\\s+");
 			String word = entry[0];
 			String pos = entry[1];
+			System.out.println(word);
 			if((pos.equals("NNP")||word.equals("tomorrow"))&&rawWords.get(i-1).split("\\s+")[0].equals("due")){
 				int beginning = i;
 				int ending = i;
@@ -107,6 +108,68 @@ public class Rules {
 					outSentence.add(nounGroupLine);
 				}
 				i=ending;
+			}
+			else if (pos.equals("CD")){
+				int beginning = i;
+				int ending = i;
+				boolean beginningFound = false;
+				boolean endingFound = false;
+				int j = i+1;
+				while(!endingFound){
+					if((rawWords.get(j).split("\\s")[1].equals("CC")&&rawWords.get(j-1).split("\\s")[1].equals("CD")&&rawWords.get(j+1).split("\\s")[1].equals("CD"))||rawWords.get(j).split("\\s")[1].equals("NN")||rawWords.get(j).split("\\s")[1].equals("NNS")||rawWords.get(j).split("\\s")[1].equals("NNP")||rawWords.get(j).split("\\s")[1].equals("NNPS")||rawWords.get(j).split("\\s")[1].equals("CD")||rawWords.get(j).split("\\s")[1].equals("CD")||rawWords.get(j).split("\\s")[0].equals("%")){
+						ending++;
+						j++;
+					}
+					else
+						endingFound = true;
+				}
+				j = i-1;
+				while(!beginningFound){
+					if(rawWords.get(j).split("\\s")[0].equals("to")&&rawWords.get(j-1).split("\\s")[0].equals("up")){
+						beginning-=2;
+						beginningFound = true;
+					}
+					else if(rawWords.get(j).split("\\s")[1].equals("#")||rawWords.get(j).split("\\s")[1].equals("PRP$")||rawWords.get(j).split("\\s")[1].equals("JJ")||rawWords.get(j).split("\\s")[1].equals("JJR")||rawWords.get(j).split("\\s")[1].equals("JJS")||rawWords.get(j).split("\\s")[1].equals("$")){
+						j--;
+						beginning--;
+					}
+					else if(rawWords.get(j).split("\\s")[1].equals("POS")||rawWords.get(j).split("\\s")[1].equals("DT")||rawWords.get(j).split("\\s")[0].equals("approximately")||rawWords.get(j).split("\\s")[0].equals("around")||rawWords.get(j).split("\\s")[0].equals("almost")||rawWords.get(j).split("\\s")[0].equals("about")){
+						beginning--;
+						beginningFound = true;
+					}
+					else if (rawWords.get(j).split("\\s")[0].equals("as")&&(rawWords.get(j-1).split("\\s")[0].equals("many")||rawWords.get(j-1).split("\\s")[0].equals("much"))&&rawWords.get(j-2).split("\\s")[0].equals("as")){
+						beginning-=3;
+						beginningFound = true;
+					}
+
+					else if (rawWords.get(j).split("\\s")[1].equals("VBN")&&j>0&&(rawWords.get(j-1).split("\\s+")[1].equals("JJR")||rawWords.get(j-1).split("\\s+")[1].equals("PRP$")||rawWords.get(j-1).split("\\s+")[1].equals("JJ")||rawWords.get(j-1).split("\\s+")[1].equals("DT")||rawWords.get(j-1).split("\\s+")[1].equals("RB"))){
+						beginning--;
+						j--;
+					}
+					else if (rawWords.get(j).split("\\s")[1].equals("VBN")&&j>1&&(rawWords.get(j-1).split("\\s+")[1].equals(",")&&(rawWords.get(j-1).split("\\s+")[1].equals("JJR")||rawWords.get(j-2).split("\\s+")[1].equals("PRP$")||rawWords.get(j-2).split("\\s+")[1].equals("JJ")||rawWords.get(j-2).split("\\s+")[1].equals("DT")||rawWords.get(j-2).split("\\s+")[1].equals("RB")))){
+						beginning-=2;
+						j-=2;
+					}
+					else if((rawWords.get(j).split("\\s")[1].equals("RBR")||rawWords.get(j).split("\\s")[0].equals("not"))&&rawWords.get(j+1).split("\\s+")[1].equals("JJ")){
+						beginning--;
+						j--;
+					}
+					
+					else{
+						beginningFound = true;
+					}
+
+					while(beginning<outSentence.size()){
+						outSentence.remove(outSentence.size()-1);
+					}
+					String nounGroupLine = rawWords.get(beginning).split("\\s+")[0]+"\tB-NP";
+					outSentence.add(nounGroupLine);
+					for(int index = beginning+1; index<=ending; index++){
+						nounGroupLine = rawWords.get(index).split("\\s+")[0]+"\tI-NP";
+						outSentence.add(nounGroupLine);
+					}
+					i=ending;
+				}
 			}
 			/*else if(pos.equals("CD")&&rawWords.get(i-1).split("\\s+")[0].equals("$")&&rawWords.get(i-2).split("\\s+")[1].equals("IN")){
 				int beginning=i;
@@ -156,11 +219,17 @@ public class Rules {
 				}
 				i=ending;
 			}*/
+			//else if(pos.equals(arg0))
 			else if(pos.equals("PRP")||pos.equals("WP")||word.equals("those")||pos.equals("WDT")){
 				int beginning = i;
-				int ending = i;
+				//int ending = i;
 				String nounGroupLine = rawWords.get(beginning).split("\\s+")[0]+"\tB-NP";
 				outSentence.add(nounGroupLine);
+			}
+			else if(word.equals("anywhere")&&rawWords.get(i+1).split("\\s+")[0].equals("else")){
+				outSentence.add("anywhere\tB-NP");
+				outSentence.add("else\tI-NP");
+				i++;
 			}
 			/*else if (word.equals("same")&&rawWords.get(i-1).split("\\s")[0].equals("the")){
 				outSentence.remove(outSentence.size()-1);
@@ -169,14 +238,14 @@ public class Rules {
 				nounGroupLine = "same\tI-NP";
 				outSentence.add(nounGroupLine);
 			}*/
-			else if(pos.equals("NN")||pos.equals("NNS")||pos.equals("NNP")||pos.equals("NNPS")||pos.equals("CD")/*||pos.equals("PRP")*/||pos.equals("EX")){
+			else if(pos.equals("NN")||pos.equals("NNS")||pos.equals("NNP")||pos.equals("NNPS")||pos.equals("CD")/*||pos.equals("PRP")*/||pos.equals("EX")||word.equals("counseling")||word.equals("Counseling")){
 				int beginning = i;
 				int ending = i;
 				boolean endFound = false;
 				int j = i+1;
 				while(!endFound){
 					String next=rawWords.get(j).split("\\s")[1];
-					if(next.equals("NN")||next.equals("NNS")||next.equals("NNP")||next.equals("NNPS")||next.equals("CD")||(next.equals("CC")&&rawWords.get(j-1).split("\\s")[1].equals("CD")&&rawWords.get(j+1).split("\\s")[1].equals("CD"))){
+					if(next.equals("NN")||next.equals("NNS")||next.equals("NNP")||next.equals("NNPS")||next.equals("CD")||(next.equals("CC")&&rawWords.get(j-1).split("\\s")[1].equals(rawWords.get(j+1).split("\\s")[1]))){
 						ending++;
 						j++;
 					}
@@ -188,13 +257,50 @@ public class Rules {
 				while(!beginningFound){
 					String[] pArray = rawWords.get(j).split("\\s+");
 					String prior = pArray[1];
-					if(prior.equals("JJ")||prior.equals("JJR")||prior.equals("JJS")||prior.equals("PRP$")||prior.equals("RBS")||prior.equals("$")||prior.equals("RB")||(prior.equals("VBG")&&rawWords.get(j-1).split("\\s+")[1].equals("JJR"))||(pArray[0].equals("more")&&rawWords.get(j+1).split("\\s+")[1].equals("JJ"))){
+					if(j>2 &&prior.equals(rawWords.get(j-2).split("\\s+")[1])&&(rawWords.get(j-1).split("\\s+")[1].equals("CC")||rawWords.get(j-1).split("\\s+")[1].equals(","))){
+						beginning-=2;
+						j-=2;
+					}
+					else if(prior.equals("JJ")||prior.equals("JJR")||prior.equals("JJS")||prior.equals("PRP$")||prior.equals("RBS")||prior.equals("$")||prior.equals("RB")||prior.equals("NNP")||prior.equals("NNPS")){
 						beginning--;
 						j--;
 					}
-					else if (prior.equals("DT")||prior.equals("POS")){
+					else if (prior.equals("VBN")&&j>1&&(rawWords.get(j-1).split("\\s+")[1].equals(",")&&(rawWords.get(j-2).split("\\s+")[1].equals("JJR")||rawWords.get(j-2).split("\\s+")[1].equals("PRP$")||rawWords.get(j-2).split("\\s+")[1].equals("JJ")||rawWords.get(j-2).split("\\s+")[1].equals("DT")||rawWords.get(j-2).split("\\s+")[1].equals("RB")))){
+						beginning-=2;
+						j-=2;
+					}
+					else if (prior.equals("VBN")&&j>0&&(rawWords.get(j-1).split("\\s+")[1].equals("JJR")||rawWords.get(j-1).split("\\s+")[1].equals("PRP$")||rawWords.get(j-1).split("\\s+")[1].equals("JJ")||rawWords.get(j-1).split("\\s+")[1].equals("DT")||rawWords.get(j-1).split("\\s+")[1].equals("RB"))){
 						beginning--;
-						beginningFound = true;
+						j--;
+					}
+					else if (prior.equals("VBG")&&j>0&&(rawWords.get(j-1).split("\\s+")[1].equals("DT")||rawWords.get(j-1).split("\\s+")[1].equals("JJR")||rawWords.get(j-1).split("\\s+")[1].equals("JJ")||rawWords.get(j-1).split("\\s+")[1].equals("PRP$"))){
+						beginning--;
+						j--;
+					}
+					else if((prior.equals("RBR")||pArray[0].equals("not"))&&rawWords.get(j+1).split("\\s+")[1].equals("JJ")){
+						beginning--;
+						j--;
+					}
+					else if((pArray[0].equals("Buying")||pArray[0].equals("buying"))&&rawWords.get(j+1).split("\\s+")[0].equals("income")){
+						beginning--;
+						j--;
+					}
+					else if(pArray[0].equals("counseling")||pArray[0].equals("Counseling")){
+						beginning--;
+						j--;
+						if(rawWords.get(j).split("\\s+")[1].equals("NN")){
+							beginning--;
+							j--;
+						}
+					}
+					
+					else if (prior.equals("DT")||prior.equals("POS")){
+						//j--;
+						beginning--;
+						if(!rawWords.get(j-1).split("\\s+")[1].equals("DT"))
+							beginningFound = true;
+						else
+							j--;
 					}
 					else
 						beginningFound = true;
