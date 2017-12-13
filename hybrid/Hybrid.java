@@ -17,7 +17,7 @@ public class Hybrid {
 		static HashMap<String,HashMap<String, HashMap<String, hashNode>>> posToWordToTag  = new HashMap<String, HashMap<String, HashMap<String, hashNode>>>();
 		static HashMap<String, HashMap<String,HashMap<String,HashMap<String, hashNode>>>> posToTagToPosToTag = new HashMap<String, HashMap<String,HashMap<String,HashMap<String, hashNode>>>>();
 		
-		static HashMap<String,HashMap<String, HashMap<String, hashNode>>> posToPosToTag = new HashMap<String, HashMap<String, HashMap<String, hashNode>>>();
+		static HashMap<String,HashMap<String, HashMap<String, hashNode>>> prevPosToPosToTag = new HashMap<String, HashMap<String, HashMap<String, hashNode>>>();
 		static HashMap<String,HashMap<String,HashMap<String, hashNode>>> tagToPosToTag = new HashMap<String,HashMap<String,HashMap<String, hashNode>>>();
 		static HashMap<String,HashMap<String,HashMap<String, hashNode>>> nextPosToPosToTag = new HashMap<String,HashMap<String,HashMap<String, hashNode>>>();
 		
@@ -685,15 +685,15 @@ public class Hybrid {
 			iTag.nextPos = rawWords.get(index+1).split("\\s+")[1];
 			iTag.nextTag = "I-NP";
 
-			double iChance1 = posToWordToTag.get(iTag.pos).get("OOV").get("B-NP").value;
+			double iChance1 = posToWordToTag.get(iTag.pos).get("OOV").get("I-NP").value;
 			if(posToWordToTag.get(iTag.pos).containsKey(rawWords.get(index).split("\\s+")[0]))
-				iChance1 = posToWordToTag.get(iTag.pos).get(rawWords.get(index).split("\\s+")[0]).get("B-NP").value;
+				iChance1 = posToWordToTag.get(iTag.pos).get(rawWords.get(index).split("\\s+")[0]).get("I-NP").value;
 			
 			double iChance2;
 			if(nextPosToPosToTag.get(rawWords.get(index+1).split("\\s+")[1]).containsKey(iTag.pos))
-				iChance2 = nextPosToPosToTag.get(rawWords.get(index+1).split("\\s+")[1]).get(iTag.pos).get("B-NP").value;
+				iChance2 = nextPosToPosToTag.get(rawWords.get(index+1).split("\\s+")[1]).get(iTag.pos).get("I-NP").value;
 			else
-				iChance2 = nextPosToPosToTag.get(rawWords.get(index+1).split("\\s+")[1]).get("OOV").get("B-NP").value;
+				iChance2 = nextPosToPosToTag.get(rawWords.get(index+1).split("\\s+")[1]).get("OOV").get("I-NP").value;
 			
 			double iMaxGivenPossiblePrevTags=0;
 			if(posToTagToPosToTag.get(iTag.prevPos).containsKey("O")&&posToTagToPosToTag.get(iTag.prevPos).get("O").containsKey(iTag.pos)){
